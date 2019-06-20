@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #define SOCK_PATH "testing socket"
+#define MAX_SIZE 1024
 
 typedef struct message {
 	int type;
@@ -21,7 +22,6 @@ int main(void) {
 	struct sockaddr_un local, remote;
 	char str[100];
 	pid_t pid;
-//	int sum;
 
 	if( (s = socket(AF_UNIX, SOCK_STREAM, 0) ) == -1 ) {
 		printf("socket");
@@ -56,14 +56,14 @@ int main(void) {
 
 		done = 0;
 		do {
-			n = recv(s2, &m, sizeof(m), 0);
+			n = recv(s2, &m, MAX_SIZE, 0);
 			if (n <= 0) {
 				if (n < 0) printf("recv");
 				done = 1;
 			}
 			if (!done) {
 				m.type = 2;
-				pid = vfork();
+				pid = fork();
 				int i;
 
 				if(pid < 0) {
@@ -75,32 +75,32 @@ int main(void) {
 					for(i=0;i<2;i++){
 						m.value[i] = 0;
 					}
-					n = recv(s2, &m, sizeof(m), 0);
+					/*n = recv(s2, &m, MAX_SIZE, 0);
 					if (n <= 0) {
 						if (n < 0) printf("recv");
 						done = 1;
-					}
+					}*/
 				}
 				else if(pid == 0){ 
 					if(m.operation == '+'){
 						printf("child : %d + %d = ?\n", m.value[0], m.value[1]);
 						m.value[0]  = m.value[0] + m.value[1];
-						exit(1);
+						//exit(1);
 					}
 					else if(m.operation == '-'){
 						printf("child : %d - %d = ?\n", m.value[0], m.value[1]);
 						m.value[0] = m.value[0] - m.value[1];
-						exit(1);
+						//exit(1);
 					}
 					else if(m.operation == '*'){
 						printf("child : %d * %d = ?\n", m.value[0], m.value[1]);
 						m.value[0] = m.value[0] * m.value[1];
-						exit(1);
+						//exit(1);
 					}
 					else{
 						printf("child : %d / %d = ?\n", m.value[0], m.value[1]);
 						m.value[0] = m.value[0] / m.value[1];
-						exit(1);
+						//exit(1);
 					}
 				if(send(s2, &m, sizeof(m), 0) < 0) {
 					printf("send");
